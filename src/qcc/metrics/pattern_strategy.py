@@ -55,6 +55,10 @@ class VerticalPatternDetection(PatternDetectionStrategy):
 
         return self.generate_pattern_frequency(char_assignments)
     
+    def generate_pattern_frequency(self, tag_assignments):
+        return self.detection_algo.detect_patterns(
+            tag_assignments
+        )
 
 class HorizontalPatternDetection(PatternDetectionStrategy):
     """
@@ -90,5 +94,9 @@ class HorizontalPatternDetection(PatternDetectionStrategy):
             marked_assignments, key=lambda ta: ta.timestamp,
         )        
 
-
         return self.generate_pattern_frequency(sorted_assignments)
+
+    def generate_pattern_frequency(self, tag_assignments):
+        return self.detection_algo.detect_patterns(
+            tag_assignments
+        )
