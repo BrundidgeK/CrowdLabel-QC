@@ -24,13 +24,13 @@ from qcc.metrics.agreement import AgreementMetrics, LatestLabelPercentAgreement 
 
 
 
-def group_by_comment(assignments: List[TagAssignment]) -> Dict[str, List[TagAssignment]]:
+def group_by_comment(assignments: List[TagAssignment]) -> Dict[str, List[TagAssignment]]:  # function header
     """Group assignments by comment_id (string key).
 
-    This function focuses on IDs only — it will look for a ``comment_id``
-    attribute on the assignment and fall back to assignment.comment.id if a comment object is present. 
-    Assignments missing any comment id are skipped.
-    """  # fixed incomplete docstring
+    This function reads the comment id from `assignment.comment_id` or, if
+    that is missing, falls back to the attached object's `assignment.comment.id`.
+    Assignments missing both are skipped.
+    """  # updated docstring
 
     groups: Dict[str, List[TagAssignment]] = defaultdict(list)  # init grouping dict
 
@@ -48,13 +48,14 @@ def group_by_comment(assignments: List[TagAssignment]) -> Dict[str, List[TagAssi
 
 def group_by_comment_and_characteristic(
     assignments: List[TagAssignment],
-) -> Dict[Tuple[str, str], List[TagAssignment]]:
+) -> Dict[Tuple[str, str], List[TagAssignment]]:  # function header
     """Group assignments by (comment_id, characteristic_id) tuple of strings.
 
-    This is explicitly ID-focused and does not attempt to create any
-    placeholder domain objects. If either id is missing the assignment is
-    skipped.
-    """
+    This function reads `assignment.comment_id` or falls back to the
+    attached object's `assignment.comment.id`, and reads
+    `assignment.characteristic_id` or falls back to
+    `assignment.characteristic.id`. Assignments missing either id are skipped.
+    """  # updated docstring
 
     groups: Dict[Tuple[str, str], List[TagAssignment]] = defaultdict(list)  # init grouping dict
 
@@ -76,12 +77,12 @@ def group_by_comment_and_characteristic(
     return dict(groups)  # convert to dict
 
 
-def taggers_who_touched_comment(assignments_for_comment: List[TagAssignment]) -> Set[str]:
-    """Return set of tagger_id strings of taggers who tagged this comment.
+def taggers_who_touched_comment(assignments_for_comment: List[TagAssignment]) -> Set[str]:  # function header
+    """Return set of tagger id strings for these assignments.
 
-    This function strictly returns IDs and does not construct or return
-    Tagger objects.
-    """
+    Reads `assignment.tagger_id` or, if missing, falls back to the attached object's
+    `assignment.tagger.id`. Missing ids are skipped.
+    """ 
 
     tagger_ids: Set[str] = set()  # init tagger id set
     for assignment in assignments_for_comment or []:  # iterate assignments
@@ -95,11 +96,14 @@ def taggers_who_touched_comment(assignments_for_comment: List[TagAssignment]) ->
     return tagger_ids  # return collected ids
 
 
-def count_yes_no(assignments: List[TagAssignment]) -> Tuple[int, int]:
-    """Return (#YES, #NO) based on TagValue.YES and TagValue.NO.
 
-    Non-YES/NO values are ignored.
-    """
+
+
+def count_yes_no(assignments: List[TagAssignment]) -> Tuple[int, int]:
+    """Return (#YES votes, #NO votes) for these assignments.
+
+    Only counts TagValue.YES and TagValue.NO. Other values are ignored.
+    """ 
 
     yes = 0  # init yes count
     no = 0  # init no count
@@ -160,7 +164,7 @@ def cohens_kappa_for_item(assignments: List[TagAssignment], characteristic: Char
     """Return Cohen's kappa for a single (comment, characteristic).
 
     Uses LatestLabelPercentAgreement to compute Cohen's kappa and returns
-    a value rounded to 3 decimals (no clamping).
+    a value rounded to 3 decimals.
     """  # docstring for kappa
 
     if not assignments:  # return None if empty
@@ -170,7 +174,7 @@ def cohens_kappa_for_item(assignments: List[TagAssignment], characteristic: Char
     if len(taggers) < 2:  # need at least two taggers
         return None  # not enough taggers
 
-    pla = LatestLabelPercentAgreement()  # create percent-agreement calculator
+    pla = LatestLabelPercentAgreement()  # create agreement calculator
     k = pla.cohens_kappa(assignments, characteristic)  # compute kappa
     if k is None:  # handle None result
         return None  # propagate None
