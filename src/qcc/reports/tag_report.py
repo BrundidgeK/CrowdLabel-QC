@@ -13,7 +13,7 @@ from typing import Dict, List, Tuple, Set, Optional  # type hints
 from qcc.domain.tagassignment import TagAssignment  # import assignments
 from qcc.domain.characteristic import Characteristic  # import characteristic
 from qcc.domain.enums import TagValue  # import tag values
-from qcc.metrics.agreement import AgreementMetrics  # import metrics
+from qcc.metrics.agreement import AgreementMetrics, LatestLabelPercentAgreement  # add import
 
 # NOTE:
 # This module provides compute-only helper functions for tag-level reporting.
@@ -131,3 +131,47 @@ def alpha_for_item(assignments: List[TagAssignment], characteristic: Characteris
 
     metrics = AgreementMetrics()  # create metrics calculator
     return metrics.krippendorffs_alpha(assignments, characteristic)  # compute alpha
+
+
+def percent_agreement_for_item(assignments: List[TagAssignment], characteristic: Characteristic) -> Optional[float]:  # new helper
+    """Return percent agreement for a single (comment, characteristic).
+
+    Uses LatestLabelPercentAgreement to compute percent agreement and
+    returns a value rounded to 3 decimals and clamped to [0.0, 1.0].
+    """  # docstring for percent agreement
+
+    if not assignments:  # return None if empty
+        return None  # empty fallback
+
+    taggers = taggers_who_touched_comment(assignments)  # get unique taggers
+    if len(taggers) < 2:  # need at least two taggers
+        return None  # not enough taggers
+
+    pla = LatestLabelPercentAgreement()  # create percent-agreement calculator
+    pa = pla.percent_agreement(assignments, characteristic)  # compute percent agreement
+    # clamp to [0.0, 1.0]
+    if pa is None:  # handle None result
+        return None  # propagate None
+    pa_clamped = max(0.0, min(1.0, float(pa)))  # clamp value
+    return round(pa_clamped, 3)  # round and return
+
+
+def cohens_kappa_for_item(assignments: List[TagAssignment], characteristic: Characteristic) -> Optional[float]:  # new helper
+    """Return Cohen's kappa for a single (comment, characteristic).
+
+    Uses LatestLabelPercentAgreement to compute Cohen's kappa and returns
+    a value rounded to 3 decimals (no clamping).
+    """  # docstring for kappa
+
+    if not assignments:  # return None if empty
+        return None  # empty fallback
+
+    taggers = taggers_who_touched_comment(assignments)  # get unique taggers
+    if len(taggers) < 2:  # need at least two taggers
+        return None  # not enough taggers
+
+    pla = LatestLabelPercentAgreement()  # create percent-agreement calculator
+    k = pla.cohens_kappa(assignments, characteristic)  # compute kappa
+    if k is None:  # handle None result
+        return None  # propagate None
+    return round(float(k), 3)  # round and return
