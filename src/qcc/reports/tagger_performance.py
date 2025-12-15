@@ -136,7 +136,7 @@ class TaggerPerformanceReport:
 
         for tagger in taggers:
             assignments = self._eligible_yes_no_assignments(tagger.tagassignments or [])
-            pattern_counts = horizontal_strategy.analyze(tagger)
+            pattern_counts = horizontal_strategy.tally_pattern_count(tagger)
             positive_patterns = {
                 pattern: count
                 for pattern, count in (pattern_counts or {}).items()
@@ -160,7 +160,7 @@ class TaggerPerformanceReport:
                     char_assignments = self._assignments_for_characteristic(
                         assignments, characteristic.id
                     )
-                    char_counts = vertical_strategy.analyze(tagger, characteristic)
+                    char_counts = vertical_strategy.tally_pattern_count(tagger, characteristic)
                     if not char_counts and char_assignments:
                         char_counts = self._short_sequence_pattern_counts(
                             vertical_strategy, char_assignments, tracked_patterns

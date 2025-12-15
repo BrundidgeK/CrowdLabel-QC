@@ -18,7 +18,7 @@ from qcc.metrics.pattern_strategy import (
     HorizontalPatternDetection,
     VerticalPatternDetection,
 )
-from qcc.metrics.interfaces import PatternSignalsStrategy
+from qcc.metrics.interfaces import PatternDetectionStrategy
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +121,7 @@ class PatternDetectionReport:
             self._recalculate_csv_tag_availability(csv_path, mysql_config)
 
     def _build_horizontal_results(
-        self, taggers: Sequence[Tagger], strategy: PatternSignalsStrategy
+        self, taggers: Sequence[Tagger], strategy: PatternDetectionStrategy
     ) -> List[Dict[str, object]]:
         per_assignment: List[Dict[str, object]] = []
 
@@ -150,7 +150,7 @@ class PatternDetectionReport:
         self,
         taggers: Sequence[Tagger],
         characteristics: Sequence[Characteristic],
-        strategy: PatternSignalsStrategy,
+        strategy: PatternDetectionStrategy,
     ) -> List[Dict[str, object]]:
         per_characteristic: List[Dict[str, object]] = []
 
@@ -201,7 +201,7 @@ class PatternDetectionReport:
     def _pattern_windows(
         self,
         assignments: Sequence[TagAssignment],
-        strategy: PatternSignalsStrategy,
+        strategy: PatternDetectionStrategy,
         substring_length: int = 12,
     ) -> List[tuple[int, str]]:
         if not assignments:

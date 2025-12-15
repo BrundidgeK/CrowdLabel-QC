@@ -1,26 +1,14 @@
 from __future__ import annotations
 from typing import Dict, Optional
-from .interfaces import PatternSignalsStrategy
+from .interfaces import PatternDetectionStrategy
 from ..domain import enums
-class VerticalPatternDetection(PatternSignalsStrategy):
+class VerticalPatternDetection(PatternDetectionStrategy):
     """
     Class to detect if there are patterns for tag assignments for specific characteristics
     This pattern detection strategy assumes that students are marking tags vertically, instead of across the review question.
     """
 
-
-    # TODO - why is characteristic a parameter? Try to understand where pattern detection is happening again.
-    # tag assignments should be in a chronological order
-    # there are probably tag assignments that should not be part of a pattern after certain amount of time has elapsed
-    
-    # it would make more sense to analyze patterns for a Tagger, NOT based on the characteristic, but just all their tags
-    # arranged in chronological order for a specific assignment
-
-    # it seems pattern evaluation for characteristic would be assuming that the students are tagging in a vertical order
-    # but students could also be tagging horizontally (in order to complete tagging for a review question before moving on to the next)
-
-
-    def analyze(
+    def tally_pattern_count(
         self,
         tagger: "Tagger",
         char: Optional["Characteristic"] = None,
@@ -36,8 +24,6 @@ class VerticalPatternDetection(PatternSignalsStrategy):
         Returns:
             dict: A dictionary such that the key represents a pattern, and the value represents the frequency of its occurrences.
         """
-        # TODO: Implement pattern detection logic (e.g., runs, alternations, N-grams).
-
 
         # Plan
         # Get list of TagAssignments for Tagger
@@ -70,14 +56,14 @@ class VerticalPatternDetection(PatternSignalsStrategy):
         return self.generate_pattern_frequency(char_assignments)
     
 
-class HorizontalPatternDetection(PatternSignalsStrategy):
+class HorizontalPatternDetection(PatternDetectionStrategy):
     """
     Class to detect if there are patterns for tag assignments for specific characteristics
     This pattern detection strategy assumes that students are marking tags horizontally, such that all tags for a review question are marked
     before moving on to the next review question
     """
 
-    def analyze(self, tagger: "Tagger") -> Dict[str, int]:
+    def tally_pattern_count(self, tagger: "Tagger") -> Dict[str, int]:
         """
         Analyze the tagging sequence of a single Tagger to detect simple repetitive or suspicious patterns.
 

@@ -181,7 +181,7 @@ def test_vertical_pattern_detection(pattern_str, expected, generate_mock_data):
     tagger = generate_mock_data["tagger"]
     chars = generate_mock_data["chars"]
 
-    actual = strategy.analyze(tagger, chars[0])
+    actual = strategy.tally_pattern_count(tagger, chars[0])
 
     assert actual == expected
 
@@ -209,7 +209,7 @@ def test_horizontal_pattern_detection(pattern_str, expected, generate_mock_data)
     tagger = generate_mock_data["tagger"]
     chars = generate_mock_data["chars"]
 
-    actual = strategy.analyze(tagger)
+    actual = strategy.tally_pattern_count(tagger)
 
     assert actual == expected
     
