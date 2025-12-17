@@ -2,6 +2,9 @@ from __future__ import annotations
 from typing import Dict, Optional
 from .interfaces import PatternDetectionStrategy
 from ..domain import enums
+
+# TODO for Spring 2026: Turn VerticalPatternDetection and HorizontalPatternDetection into single logic as much as possible
+
 class VerticalPatternDetection(PatternDetectionStrategy):
     """
     Class to detect if there are patterns for tag assignments for specific characteristics
