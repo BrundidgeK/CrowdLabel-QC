@@ -10,7 +10,7 @@ from typing import Dict, Iterable, Protocol
 import re
 
 from ..domain.enums import TagValue
-from .detection_algorithms import ContiguousDetectionAlgorithm
+from .detection_algorithm import ContiguousDetectionAlgorithm
 # from .utils.pattern import PatternCollection
 
 
