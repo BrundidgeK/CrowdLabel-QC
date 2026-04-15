@@ -16,6 +16,6 @@ class TestTagReportOutput:
 
         report = TagReportOutput()
         print(str(csv_output))
-        report.db_to_csv(csv_output)
+        report.db_to_csv(csv_output, "")
 
     
