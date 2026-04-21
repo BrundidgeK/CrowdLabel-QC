@@ -171,7 +171,8 @@ def tag_reliability_calculation(
         return None
 
     # Compute agreement matrix
-    pairwise_matrix = AgreementMetrics.agreement_matrix(assignments)
+    agreement = AgreementMetrics()
+    pairwise_matrix = agreement.agreement_matrix(assignments=assignments, characteristic=getattr(assignments[0], "characteristic_id", None))
 
     # Build reliability dict
     reliability: Dict[str, float] = {}
