@@ -12,10 +12,12 @@ from qcc.reports.tagger_reports.tag_report import (
     group_by_comment_and_characteristic,
     alpha_for_item,
     kappa_for_item,
+    tag_reliability_calculation,
     TagReportRow,
 )
 from qcc.domain.characteristic import Characteristic
 from qcc.metrics.agreement import AgreementMetrics
+from qcc.domain.enums import TagValue
 
 
 class TagReportOutput:
@@ -25,10 +27,11 @@ class TagReportOutput:
         assignment_id: str,
         characteristic_id: Optional[str] = None,
     ):
+        
         config = MySQLConfig(
             host="localhost",
-            user="kgbrundi",
-            password="", 
+            user="root",
+            password="",
             database="expertiza_anonymized",
             port=3306,
         )
@@ -188,6 +191,9 @@ class TagReportOutput:
                 record,
                 per_tagger_metric_cache,
             )
+            
+            tag_reliabilty_yes = tag_reliability_calculation(record.assignments, TagValue.YES)
+            tag_reliabilty_no = tag_reliability_calculation(record.assignments, TagValue.NO)
 
             row = TagReportRow(
                 comment_id=record.comment_id,
@@ -199,6 +205,8 @@ class TagReportOutput:
                 cohens_kappa=kappa,
                 krippendorffs_alpha=alpha,
                 aggregate_tagger_reliability=aggregate_reliability,
+                tag_reliability_yes=tag_reliabilty_yes,
+                tag_reliability_no=tag_reliabilty_no
             )
 
             rows.append(row)
@@ -210,6 +218,7 @@ class TagReportOutput:
         assignments: List[TagAssignment],
         output_path: str,
     ):
+
         records = self.build_records(assignments)
         rows = self.build_rows(records, assignments)
 
@@ -231,3 +240,5 @@ class TagReportOutput:
 
             for row in rows:
                 writer.writerow(row.to_csv_row())
+
+        print("CSV GENERATED")

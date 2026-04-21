@@ -26,6 +26,8 @@ class TagReportRow:
     cohens_kappa: Optional[float]
     krippendorffs_alpha: Optional[float]
     aggregate_tagger_reliability: Optional[float]
+    tag_reliabilty_yes : Optional[float]
+    tag_reliability_no : Optional[float]
 
     def to_csv_row(self):
         return [
@@ -38,6 +40,8 @@ class TagReportRow:
             self.cohens_kappa,
             self.krippendorffs_alpha,
             self.aggregate_tagger_reliability,
+            self.tag_reliabilty_yes,
+            self.tag_reliability_no,
         ]
 
 
