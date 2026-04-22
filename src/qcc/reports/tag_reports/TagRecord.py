@@ -1,4 +1,5 @@
 from qcc.reports.tagger_reports.tag_report import count_yes_no
+from qcc.domain.enums import TagValue
 
 class TagRecord:
     def __init__(self, comment_id, characteristic_id, assignments):

@@ -8,7 +8,6 @@ from typing import Dict, List, Tuple, Set, Optional
 
 from qcc.domain.tagassignment import TagAssignment
 from qcc.domain.characteristic import Characteristic
-from qcc.domain.tagger import Tagger
 from qcc.domain.enums import TagValue
 from qcc.metrics.agreement import AgreementMetrics
 
@@ -26,7 +25,7 @@ class TagReportRow:
     cohens_kappa: Optional[float]
     krippendorffs_alpha: Optional[float]
     aggregate_tagger_reliability: Optional[float]
-    tag_reliabilty_yes : Optional[float]
+    tag_reliability_yes : Optional[float] 
     tag_reliability_no : Optional[float]
 
     def to_csv_row(self):
@@ -40,7 +39,7 @@ class TagReportRow:
             self.cohens_kappa,
             self.krippendorffs_alpha,
             self.aggregate_tagger_reliability,
-            self.tag_reliabilty_yes,
+            self.tag_reliability_yes,
             self.tag_reliability_no,
         ]
 
@@ -157,71 +156,118 @@ def kappa_for_item(
     metrics = AgreementMetrics()
     return metrics.cohens_kappa(assignments, characteristic)
 
-def tag_reliability_calculation(
+def calculate_tag_reliability(
     assignments: List[TagAssignment],
     value: TagValue,
 ) -> Optional[float]:
-
+    """
+    Calculate tag reliability using a three-step approach:
+    
+    Step 1: Agreement Strength
+        agreement = k / n
+        where n = total number of taggers, k = number who assigned this tag
+    
+    Step 2: Worker Reliability Weighting
+        For each worker, compute their global reliability as the mean of their
+        pairwise agreement scores with all other workers.
+        
+        weighted_vote = sum(r_w for w in T) / sum(r_w for w in all_taggers)
+        where T = workers who assigned the tag, r_w = worker w's reliability
+    
+    Step 3: Combine
+        tag_reliability = agreement * weighted_vote
+    
+    Args:
+        assignments: List of TagAssignment objects for the item
+        value: TagValue to calculate reliability for (YES, NO, etc.)
+        per_tagger_metric_cache: Optional cache of per-tagger metrics
+    
+    Returns:
+        Reliability score between 0.0 and 1.0, or None if calculation fails
+    """
+    
     if not assignments:
         return None
-
-    taggers_for_comment = taggers_who_touched_comment(assignments)
-
-    if len(taggers_for_comment) == 0:
+    
+    # Get all taggers who tagged this item
+    all_taggers = taggers_who_touched_comment(assignments)
+    n = len(all_taggers)
+    
+    if n == 0:
         return None
-
-    # Compute agreement matrix
-    agreement = AgreementMetrics()
-    pairwise_matrix = agreement.agreement_matrix(assignments=assignments, characteristic=getattr(assignments[0], "characteristic_id", None))
-
-    # Build reliability dict
-    reliability: Dict[str, float] = {}
-
-    for tagger in taggers_for_comment:
-
-        kappas = pairwise_matrix.get(tagger, [])
-
-        if kappas:
-            reliability[tagger] = statistics.mean(kappas)
-        else:
-            reliability[tagger] = 0.5  # fallback default
-
-    # Identify taggers assigning this value
-    taggers_assigning_tag = {
-
+    
+    # STEP 1: Calculate agreement strength
+    # Identify taggers who assigned this specific tag value
+    taggers_with_tag = {
         str(a.tagger_id)
-
         for a in assignments
-
         if a.value == value
     }
-
-    if not taggers_assigning_tag:
+    k = len(taggers_with_tag)
+    
+    if k == 0:
         return 0.0
-
-    agreement_fraction = (
-        len(taggers_assigning_tag)
-        / len(taggers_for_comment)
+    
+    # agreement = n / k
+    agreement = k / n
+    
+    # STEP 2: Calculate worker reliability weights
+    # Build reliability scores for each tagger based on pairwise agreement
+    reliability: Dict[str, float] = {}
+    
+    # Get the characteristic ID from the first assignment
+    char_id = getattr(assignments[0], "characteristic_id", None)
+    if char_id is None:
+        # Fallback: use equal weights for all taggers
+        default_reliability = 1.0 / n if n > 0 else 0.0
+        for tagger in all_taggers:
+            reliability[tagger] = default_reliability
+    else:
+        # Create a Characteristic object for agreement calculations
+        characteristic = Characteristic(str(char_id), str(char_id))
+        
+        # Compute pairwise agreement matrix
+        metrics = AgreementMetrics()
+        pairwise_matrix = metrics.agreement_matrix(assignments, characteristic)
+        
+        # For each tagger, compute their mean pairwise agreement with others
+        for tagger in all_taggers:
+            if tagger in pairwise_matrix:
+                agreement_scores = [
+                    score for other_tagger, score in pairwise_matrix[tagger].items()
+                    if other_tagger != tagger  # Exclude self-agreement (1.0)
+                ]
+                
+                if agreement_scores:
+                    reliability[tagger] = statistics.mean(agreement_scores)
+                else:
+                    # Tagger has no other taggers to compare with
+                    reliability[tagger] = 0.5
+            else:
+                # Tagger not in matrix, use neutral reliability
+                reliability[tagger] = 0.5
+    
+    # STEP 3: Calculate weighted vote
+    # Sum reliability of taggers who assigned this tag
+    sum_reliability_with_tag = sum(
+        reliability.get(tagger, 0.5)
+        for tagger in taggers_with_tag
     )
-
-    weighted_vote_numerator = sum(
-        reliability[tagger]
-        for tagger in taggers_assigning_tag
+    
+    # Sum reliability of all taggers
+    sum_reliability_all = sum(
+        reliability.get(tagger, 0.5)
+        for tagger in all_taggers
     )
-
-    weighted_vote_denominator = sum(
-
-        reliability[tagger]
-
-        for tagger in taggers_for_comment
-    )
-
-    if weighted_vote_denominator == 0:
+    
+    if sum_reliability_all == 0:
         return None
-
-    weighted_vote = (
-        weighted_vote_numerator
-        / weighted_vote_denominator
-    )
-
-    return agreement_fraction * weighted_vote
+    
+    # weighted_vote = sum(r_w for w in T) / sum(r_w for w in all_taggers)
+    weighted_vote = sum_reliability_with_tag / sum_reliability_all
+    
+    # Combine: tag_reliability = agreement * weighted_vote
+    tag_reliability = agreement * weighted_vote
+    
+    # Clamp between 0 and 1
+    return max(0.0, min(1.0, tag_reliability))

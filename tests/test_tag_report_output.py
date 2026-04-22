@@ -4,17 +4,13 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 
 from qcc.reports.tag_reports.tag_report_output import TagReportOutput
 
-print("HI")
 class TestTagReportOutput:
-    print("HI")
 
     def test_setup_method(self):
-        print("HI")
         from pathlib import Path
-        print("HI")
         report = TagReportOutput()
         csv_output = Path(os.path.dirname(__file__)) / "data" / "tag_report_1207.csv"
-        print("HI")
+
         try:
             report.db_to_csv(csv_output, assignment_id="1207")
             print("db_to_csv FINISHED")

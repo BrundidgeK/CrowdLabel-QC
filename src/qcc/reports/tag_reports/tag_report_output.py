@@ -12,7 +12,7 @@ from qcc.reports.tagger_reports.tag_report import (
     group_by_comment_and_characteristic,
     alpha_for_item,
     kappa_for_item,
-    tag_reliability_calculation,
+    calculate_tag_reliability,
     TagReportRow,
 )
 from qcc.domain.characteristic import Characteristic
@@ -192,8 +192,8 @@ class TagReportOutput:
                 per_tagger_metric_cache,
             )
             
-            tag_reliabilty_yes = tag_reliability_calculation(record.assignments, TagValue.YES)
-            tag_reliabilty_no = tag_reliability_calculation(record.assignments, TagValue.NO)
+            tag_reliabilty_yes = calculate_tag_reliability(assignments=record.assignments, value=TagValue.YES)
+            tag_reliabilty_no = calculate_tag_reliability(assignments=record.assignments, value=TagValue.NO)
 
             row = TagReportRow(
                 comment_id=record.comment_id,
@@ -232,6 +232,8 @@ class TagReportOutput:
             "cohens_kappa",
             "krippendorffs_alpha",
             "aggregate_tagger_reliability",
+            "tag_reliability_yes",
+            "tag_reliability_no",
         ]
 
         with open(output_path, "w", newline="", encoding="utf-8") as csvfile:
