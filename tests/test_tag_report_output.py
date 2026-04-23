@@ -18,12 +18,4 @@ class TestTagReportOutput:
             print("ERROR OCCURRED:", e)
         pass
 
-    """def test_write_to_csv(self):
-        from pathlib import Path
-        csv_output = Path(os.path.dirname(__file__)) / "data" / "new_tag_report_output.csv"
-
-        report = TagReportOutput()
-        print(str(csv_output))
-        report.db_to_csv(csv_output, "")"""
-
     

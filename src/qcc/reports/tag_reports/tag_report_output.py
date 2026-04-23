@@ -30,7 +30,7 @@ class TagReportOutput:
         
         config = MySQLConfig(
             host="localhost",
-            user="kgbrundi",
+            user="",
             password="",
             database="expertiza_anonymization",
             port=3306,
